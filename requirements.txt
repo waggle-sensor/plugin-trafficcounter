@@ -1,1 +1,5 @@
-pywaggle[all]
+pyyaml
+ffmpeg-python
+filterpy
+shapely
+pywaggle[vision]==0.56.*

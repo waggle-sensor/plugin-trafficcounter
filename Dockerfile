@@ -1,15 +1,26 @@
-# select a base image
-FROM waggle/plugin-base:1.1.1-base
+FROM waggle/plugin-base:1.1.1-ml-torch1.9
 
-# put all of our apps code in /app
-WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y \
+  ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
 
-# install all python dependencies
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+  && apt-get install ffmpeg libsm6 libxext6  -y
 
-# copy rest of our code
-COPY . .
+COPY requirements.txt /app/
+RUN pip3 install --upgrade pip \
+  && pip3 install --no-cache-dir --upgrade -r /app/requirements.txt
 
-# define how to run our code
-ENTRYPOINT ["python3", "main.py"]
+ADD https://web.lcrc.anl.gov/public/waggle/models/vehicletracking/yolov7.pt /app/model.pt
+
+# This allows PyWaggle to do test runs without Waggle Software Stack.
+# data-config.json is populated by Waggle Software Stack at runtime.
+RUN mkdir -p /run/waggle \
+  && echo "[]" >> /run/waggle/data-config.json
+
+# COPY utils/ /app/utils
+# COPY models/ /app/models
+# COPY app.py app_utils.py sort.py coco.names /app/
+
+ENTRYPOINT ["python3", "/app/app.py"]
