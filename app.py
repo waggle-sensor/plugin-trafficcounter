@@ -287,7 +287,6 @@ if __name__ == '__main__':
         help='Labels for detection')
     parser.add_argument("--detection-thres", dest='det_thr', type=float, default=0.5)
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
-    parser.add_argument('--target-class', nargs='+', type=int, help='Filter by class: --target-class 0, or --target-class 0 2 3')
 
     # Tracking
     parser.add_argument("--max-age",
