@@ -182,10 +182,12 @@ class TrafficCounter:
         total_count = 0
         count_per_lane = {}
         for vehicle_id, vehicle in self.vehicles.items():
-            if vehicle.is_counted:
-                total_count += 1
+            if not vehicle.is_counted:
+                continue
+
+            total_count += 1
             best_lane, _ = vehicle.get_best_lane()
-            logging.info(f"{vehicle.name} ({vehicle_id}): counted? {vehicle.is_counted} and stayed in lane {best_lane}")
+            logging.info(f"{vehicle.name} ({vehicle_id}) is counted and stayed in lane {best_lane}")
             if best_lane != "":
                 lane_count = count_per_lane.get(best_lane, 0)
                 lane_count += 1
@@ -216,7 +218,7 @@ def main(args):
     yolov7_main = YOLOv7_Main(args.model, args.det_thr, args.iou_thres)
     mot_tracker = Sort(max_age=args.max_age,
         min_hits=args.min_hits,
-        iou_threshold=args.iou_threshold) #create instance of the SORT tracker
+        iou_threshold=args.iou_thres) #create instance of the SORT tracker
 
     _, fps, width, height = get_stream_info(input_video_path)
     if args.output_file != "":
@@ -264,12 +266,15 @@ def main(args):
 
     with Plugin() as plugin:
         total_count, count_per_lane = traffic_counter.report_results()
+        logging.info(f"Publishing total count: {total_count}")
         plugin.publish("env.traffic.count.total", total_count, timestamp=timestamp)
 
         for lane, count in count_per_lane.items():
+            logging.info(f"Publishing count for {lane}: {count}")
             plugin.publish(f"env.traffic.count.{lane}", count, timestamp=timestamp)
 
         if args.output_file != "":
+            logging.info(f"Uploading output video")
             plugin.upload_file(args.output_file, timestamp=timestamp)
 
 

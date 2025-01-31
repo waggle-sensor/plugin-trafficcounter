@@ -8,7 +8,7 @@ from .utils.general import non_max_suppression
 
 
 class YOLOv7_Main():
-    def __init__(self, weightfile, class_names, detection_threshold, iou_threshold):
+    def __init__(self, weightfile, detection_threshold, iou_threshold):
         self.det_thr = detection_threshold
         self.iou_thres = iou_threshold
 
@@ -34,8 +34,6 @@ class YOLOv7_Main():
         self.model = self.model.half()
         self.model.eval()
 
-        self.class_names = class_names
-
     def prepare_input(self, frame, size=(640, 640)):
         sized = cv2.resize(frame, size)
         image = sized / 255.0
@@ -53,7 +51,7 @@ class YOLOv7_Main():
                 pred,
                 self.det_thr,
                 self.iou_thres,
-                classes=self.class_names,
+                classes=[2, 3, 5, 7], # Vehicles (see coco.names)
                 agnostic=True
             )
         return pred

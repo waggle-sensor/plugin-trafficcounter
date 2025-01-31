@@ -19,8 +19,10 @@ ADD https://web.lcrc.anl.gov/public/waggle/models/vehicletracking/yolov7.pt /app
 RUN mkdir -p /run/waggle \
   && echo "[]" >> /run/waggle/data-config.json
 
-# COPY utils/ /app/utils
-# COPY models/ /app/models
-# COPY app.py app_utils.py sort.py coco.names /app/
+WORKDIR /app
+COPY models/ /app/models
+COPY app.py record.py coco.names /app/
+
+# COPY data/sample.mp4 data/lanes.json /app/
 
 ENTRYPOINT ["python3", "/app/app.py"]
