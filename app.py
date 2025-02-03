@@ -228,7 +228,7 @@ def main(args):
 
     class_names = load_class_names(args.labels)
     traffic_counter = TrafficCounter(args.lanes, class_names)
-    with Camera(input_video_path) as camera:
+    with Camera(Path(input_video_path)) as camera:
         for sample in camera.stream():
             frame = sample.data
             out_frame = cv2.resize(frame, (640, 640))

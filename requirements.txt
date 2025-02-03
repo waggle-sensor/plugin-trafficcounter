@@ -3,3 +3,8 @@ ffmpeg-python
 filterpy
 shapely
 pywaggle[vision]==0.56.*
+# Ubuntu 18.04 and Python 3.6 in this image does not support numpy 1.20
+# 1.19.5 still crashes with opencv-python==4.5.5.64
+numpy==1.19.4
+# opencv-python > 4.5.* breaks on arm64 when numpy <= 1.20
+opencv-python==4.5.5.64
