@@ -1,5 +1,5 @@
-# filepath: untitled:Untitled-1
 import tkinter as tk
+from pathlib import Path
 import json
 from tkinter import filedialog
 from PIL import ImageTk, Image
@@ -12,11 +12,11 @@ colors = [
     "maroon", "olive", "silver", "gold"
 ]
 
-class Line:
-    def __init__(self, lane_name, color):
+class Lane:
+    def __init__(self, lane_name, color, points=[]):
         self.name = lane_name
         self.color = color
-        self.points = []
+        self.points = points
 
     def to_dict(self):
         return {"name": self.name, "points": self.points}
@@ -34,7 +34,7 @@ class Line:
 
 
 class DrawApp:
-    def __init__(self, root, input_image):
+    def __init__(self, root, input_image, load_lanes=[]):
         self.root = root
         self.root.title("Traffic Lane Marking Tool")
         
@@ -46,36 +46,39 @@ class DrawApp:
         self.image_tk = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.image_tk)
 
-        self.lines = []
         self.listbox = tk.Listbox(root)
         self.listbox.bind("<<ListboxSelect>>", self.on_listbox_select)
         self.listbox.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.name_label = tk.Label(root, text="Line Name:")
+        self.name_label = tk.Label(root, text="Lane Name:")
         self.name_label.pack()
 
         self.name_entry = tk.Entry(root)
         self.name_entry.pack()
-        self.add_button = tk.Button(root, text="Add a new line", command=self.create_new_line)
+        self.add_button = tk.Button(root, text="Add a new lane", command=self.create_new_line)
         self.add_button.pack()
 
         self.remove_button = tk.Button(root, text="Remove Last Point", command=self.remove_last_point)
         self.remove_button.pack()
 
-        self.save_button = tk.Button(root, text="Save Polylines", command=self.save_polylines)
+        self.save_button = tk.Button(root, text="Save Lanes", command=self.save_polylines)
         self.save_button.pack()
 
-        # Add a line to start
-        # self.create_new_line()
-        # self.update_listbox()
-        # self.listbox.select_set(0)
-        # self.last_point = self.current_line.get_last_point()
+        # Load lanes
+        self.lanes = []
+        self.current_lane = None
+        for l in load_lanes:
+            name = l["name"]
+            points = l["points"]
+            self.lanes.append(Lane(lane_name=name, color=colors[len(self.lanes) % len(colors)], points=points))
+        self.update_listbox()
+        self.update_lines()
 
     def update_listbox(self):
         selected = self.listbox.curselection()
-        for index, line in enumerate(self.lines):
+        for index, lane in enumerate(self.lanes):
             self.listbox.delete(index)
-            self.listbox.insert(index, f"{line.name} {index} ({line.color}): {len(line.points)} points")
+            self.listbox.insert(index, f"{lane.name} {index} ({lane.color}): {len(lane.points)} points")
         if selected:
             self.listbox.select_set(selected[0])
 
@@ -84,19 +87,19 @@ class DrawApp:
         if lane_name == "":
             tk.messagebox.showerror("Error", "Please enter a name for the line")
             return
-        self.lines.append(Line(lane_name=lane_name, color=colors[len(self.lines) % len(colors)]))
+        self.lanes.append(Lane(lane_name=lane_name, color=colors[len(self.lanes) % len(colors)], points=[]))
         self.update_listbox()
         self.listbox.selection_clear(0, tk.END)
         self.listbox.select_set(tk.END, tk.END)
-        self.current_line = self.lines[-1]
-        self.last_point = self.current_line.get_last_point()
+        self.current_lane = self.lanes[-1]
+        self.last_point = self.current_lane.get_last_point()
         self.name_entry.delete(0, tk.END)
 
     def remove_last_point(self):
         if self.last_point is None:
             return
-        self.current_line.points.pop()
-        self.last_point = self.current_line.get_last_point()
+        self.current_lane.points.pop()
+        self.last_point = self.current_lane.get_last_point()
         self.update_listbox()
 
         # Clear the canvas and redraw all lines
@@ -105,22 +108,25 @@ class DrawApp:
 
     def on_listbox_select(self, event):
         index = self.listbox.curselection()[0]
-        self.current_line = self.lines[index]
-        self.last_point = self.current_line.get_last_point()
+        self.current_lane = self.lanes[index]
+        self.last_point = self.current_lane.get_last_point()
         self.update_listbox()
 
     def on_button_release(self, event):
-        self.current_line.add_point(event)
+        if self.current_lane == None:
+            tk.messagebox.showinfo("Select a lane", "Select a lane in the listbox first")
+            return
+        self.current_lane.add_point(event)
         if self.last_point is not None:
             x, y = self.last_point
-            self.canvas.create_line(x, y, event.x, event.y, fill=self.current_line.color, width=2, tags="lines")
+            self.canvas.create_line(x, y, event.x, event.y, fill=self.current_lane.color, width=2, tags="lines")
         else:
             x, y = event.x, event.y
-            self.canvas.create_oval(x-2, y-2, x+2, y+2, fill=self.current_line.color, tags="lines")
+            self.canvas.create_oval(x-2, y-2, x+2, y+2, fill=self.current_lane.color, tags="lines")
         self.last_point = (event.x, event.y)
         
     def update_lines(self):
-        for line in self.lines:
+        for line in self.lanes:
             last_x = None
             last_y = None
             for x, y in line.get_points():
@@ -135,15 +141,22 @@ class DrawApp:
 
     def save_polylines(self):
         with open("out.json", "w") as f:
-            lanes = [x.to_dict() for x in self.lines]
-            json.dump(lanes, f, indent=4)
+            lanes = [x.to_dict() for x in self.lanes]
+            json.dump(lanes, f)
         tk.messagebox.showinfo("Save Traffic lanes", "Traffic lanes saved to out.json")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Traffic Lane Marking Tool")
     parser.add_argument("--image", "-i", required=True, help="Path to image file")
+    parser.add_argument("--lanes", "-l", type=Path, help="Lanes to load")
     args = parser.parse_args()
 
+    if args.lanes:
+        with open(args.lanes) as file:
+            preload_lanes = json.loads(file.read())
+    else:
+        preload_lanes = []
+
     root = tk.Tk()
-    app = DrawApp(root, input_image=args.image)
+    app = DrawApp(root, input_image=args.image, load_lanes=preload_lanes)
     root.mainloop()
