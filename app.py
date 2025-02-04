@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import argparse
 import logging
@@ -324,7 +325,7 @@ if __name__ == '__main__':
         help='Path to coordinations of target lanes in json.')
     parser.add_argument(
         '--lanes', dest='lanes',
-        action='store', type=str,
+        action='store', type=str, default=os.getenv('LANES', ''),
         help='A string of coordinations of target lanes in json.')
     
     # Output
