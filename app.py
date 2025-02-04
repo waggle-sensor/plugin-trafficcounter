@@ -331,7 +331,7 @@ if __name__ == '__main__':
     # Output
     parser.add_argument(
         '--output-file', dest='output_file',
-        action='store', type=str,
+        action='store', type=str, default='',
         help='Path to output video file for validation')
     args = parser.parse_args()
 

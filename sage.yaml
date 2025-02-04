@@ -1,7 +1,7 @@
 name: "traffic-counter"
 description: "Counting vehicles using object detection and tracking"
 keywords: "traffic, vehicle, counting vehicles"
-version: "1.0.2"
+version: "1.0.3"
 authors: "Yongho Kim <yongho.kim@anl.gov>"
 collaborators: "Seongha Park <seongha.park@anl.gov>, Rajesh Sankaran <rajesh@mcs.anl.gov>, Josh Auld <jauld@anl.gov>, Natalia Zuniga <nzuniga@anl.gov>"
 funding: ""
