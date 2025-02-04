@@ -79,11 +79,9 @@ class Vehicle:
 
 
 class TrafficCounter:
-    def __init__(self, config_path: Path, class_names, counter_lane_name="count"):
+    def __init__(self, lanes, class_names, counter_lane_name="count"):
         self.lanes = {}
         self.count_line = None
-        with open(config_path) as config:
-            lanes = json.loads(config.read())
         for lane in lanes:
             name = lane["name"]
             points = lane["points"]
@@ -195,6 +193,16 @@ class TrafficCounter:
         return total_count, count_per_lane
 
 def main(args):
+    if args.lanes_file:
+        logging.info(f"Loading Lane configurations from {args.lanes_file}")
+        lanes = json.loads(args.lanes_file.read_text())
+    elif args.lanes != "":
+        logging.info("Loading lane configurations from lanes argument")
+        lanes = json.loads(args.lanes.strip())
+    else:
+        logging.error("No lane configurations provided")
+        return -1
+
     if args.stream != "":
         logging.info(f"Recording from {args.stream} for {args.duration} seconds")
         result, input_video_path, timestamp = take_sample(args.stream, args.duration)
@@ -210,9 +218,6 @@ def main(args):
         input_video_path = args.input_file
         timestamp = get_timestamp()
 
-    logging.info(f"Loading Lane configurations from {args.lanes}")
-
-
     logging.info("Loading models")
     class_names = load_class_names(args.labels)
     yolov7_main = YOLOv7_Main(args.model, args.det_thr, args.iou_thres)
@@ -227,7 +232,7 @@ def main(args):
         out_stream = cv2.VideoWriter(args.output_file, fourcc, fps, (640, 640), True)
 
     class_names = load_class_names(args.labels)
-    traffic_counter = TrafficCounter(args.lanes, class_names)
+    traffic_counter = TrafficCounter(lanes, class_names)
     with Camera(Path(input_video_path)) as camera:
         for sample in camera.stream():
             frame = sample.data
@@ -276,6 +281,7 @@ def main(args):
         if args.output_file != "":
             logging.info(f"Uploading output video")
             plugin.upload_file(args.output_file, timestamp=timestamp)
+    return 0
 
 
 if __name__ == '__main__':
@@ -313,13 +319,13 @@ if __name__ == '__main__':
         action='store', default="", type=str,
         help='Path to input video file')
     parser.add_argument(
-        '--lanes',
-        action='store', required=True, type=Path,
-        help='Path to coordinations of target lanes in json')
-    # parser.add_argument(
-    #     '-sampling-interval', dest='sampling_interval',
-    #     action='store', default=-1, type=int,
-    #     help='Inferencing interval for sampling results')
+        '--lanes-file', dest='lanes_file',
+        action='store', type=Path,
+        help='Path to coordinations of target lanes in json.')
+    parser.add_argument(
+        '--lanes', dest='lanes',
+        action='store', type=str,
+        help='A string of coordinations of target lanes in json.')
     
     # Output
     parser.add_argument(
@@ -332,5 +338,4 @@ if __name__ == '__main__':
         level=logging.INFO,
         format='%(asctime)s %(message)s',
         datefmt='%Y/%m/%d %H:%M:%S')
-
-    main(args)
+    exit(main(args))

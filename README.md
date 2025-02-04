@@ -17,7 +17,7 @@ python3 record.py \
 ```bash
 # Take input.mp4 as an input
 python3 app.py \
-  --lanes /path/to/lanes.json \
+  --lanes-file /path/to/lanes.json \
   --input-file file:///path/to/input.mp4 \
 ```
 
@@ -25,7 +25,17 @@ python3 app.py \
 ```bash
 # Take a 60 second video from given stream
 python3 app.py \
-  --lanes /path/to/lanes.json \
+  --lanes-file /path/to/lanes.json \
+  --stream rtsp://mystream \
+  --duration 60
+```
+
+## Lane Configuration from String
+```bash
+# Lanes in a JSON-formatted string is also acceptable
+# Make sure to use --lanes, not --lanes-file
+python3 app.py \
+  --lanes '[{"name": "mylane", "points": [[100, 100], [200, 200]]}"]' \
   --stream rtsp://mystream \
   --duration 60
 ```
