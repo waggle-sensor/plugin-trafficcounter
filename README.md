@@ -39,3 +39,6 @@ python3 app.py \
   --stream rtsp://mystream \
   --duration 60
 ```
+
+## Applying Lane Configuration to Waggle Node
+Before submitting a job to the node for this application, you will need to apply the lane configuration to the node. Refer to [apply.sh](scripts/apply.sh) for details.
