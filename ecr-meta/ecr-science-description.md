@@ -87,4 +87,5 @@ Now, you can refer to the Sage job description to submit your job to the node.
 
 # Reference
 [1] Chien-Yao Wang, Alexey Bochkovskiy, and Hong-Yuan Mark Liao. "YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors." arXiv preprint arXiv:2207.02696 (2022).
+
 [2] Alex Bewley, Zongyuan Ge, Lionel Ott, Fabio Ramos, and Ben Upcroft. "Simple online and realtime tracking." In 2016 IEEE international conference on image processing (ICIP), pp. 3464-3468. IEEE, 2016.

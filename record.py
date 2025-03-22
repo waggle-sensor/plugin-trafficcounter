@@ -24,9 +24,9 @@ def take_sample(stream, duration, skip_second=0):
 
     # To prevent corruption in frames we prefer tcp transfer for rtsp
     if stream_url.startswith("rtsp"):
-        c = ffmpeg.input(stream_url, rtsp_transport="tcp", ss=skip_second)
+        c = ffmpeg.input(stream_url, rtsp_transport="tcp", ss=skip_second, stimeout=5000000)
     else:
-        c = ffmpeg.input(stream_url, ss=skip_second)
+        c = ffmpeg.input(stream_url, ss=skip_second, stimeout=5000000)
     c = ffmpeg.output(
         c,
         filename,
@@ -34,7 +34,11 @@ def take_sample(stream, duration, skip_second=0):
         f='mp4',
         t=duration).overwrite_output()
     logging.info("Running command: %s", c.compile())
-    c.run(quiet=True)
+    (out, err) = c.run(quiet=True, capture_stdout=True, capture_stderr=True)
+    if err:
+        logging.info("%s", out.decode())
+        logging.error("Error: %s", err.decode())
+        return False, filename, timestamp
     return True, filename, timestamp
 
 
