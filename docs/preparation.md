@@ -26,3 +26,5 @@ This Python is an interactive tool for drawing lanes and a line for counting veh
 - Add new lanes as needed. Lane names must be unique. Click name of the lane in the list box to select the lane.
 - Click "Remove Last Point" to remove the last point of the selected lane.
 - When done, Click "Save Lanes". A file named "out.json" is generated for all lanes with their points in it.
+
+4. Apply the lane information to the Waggle node. Take a look at [apply.sh](../scripts/apply.sh) to transfer the json file to the node and apply it to the Kubernetes cluster inside the node. The lane information uploaded here will later be used by the traffic counter application.
